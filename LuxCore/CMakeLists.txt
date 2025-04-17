@@ -105,7 +105,6 @@ include_directories("${LuxRays_SOURCE_DIR}/deps/robin-hood-hashing-3.9.1/src/inc
 
 # Force spdlog → external fmt
 set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use system fmt, not bundled" FORCE)
-find_package(fmt REQUIRED)
 # now Dependencies.cmake will pick up that external fmt
 
 # Find dependencies

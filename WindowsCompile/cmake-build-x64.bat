@@ -209,9 +209,7 @@ set CMAKE_OPTS=-G %CMAKE_GENERATOR% %CMAKE_PLATFORM% %CMAKE_TOOLSET% ^
   %OCL_OPTION% %CUDA_OPTION% %DLL_OPTION% ^
   -DBoost_NO_BOOST_CMAKE=ON ^
   -DBoost_INCLUDE_DIR="%INCLUDE_DIR%" ^
-  -DBoost_LIBRARY_DIR="%LIB_DIR%" ^
-  -DSPDLOG_FMT_EXTERNAL=ON ^
-  -Dfmt_DIR="C:/Users/wmbro/source/repos/AetherTopologist/LuxCore-B/vcpkg/installed/x64-windows/share/fmt"
+  -DBoost_LIBRARY_DIR="%LIB_DIR%"
 
 echo CMAKE_OPTS=%CMAKE_OPTS%
 
