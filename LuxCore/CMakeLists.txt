@@ -103,6 +103,11 @@ include_directories("${LuxRays_SOURCE_DIR}/deps/optix-7.1.0/include")
 include_directories("${LuxRays_SOURCE_DIR}/deps/spdlog-1.8.0/include")
 include_directories("${LuxRays_SOURCE_DIR}/deps/robin-hood-hashing-3.9.1/src/include")
 
+# Force spdlog → external fmt
+set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "Use system fmt, not bundled" FORCE)
+find_package(fmt REQUIRED)
+# now Dependencies.cmake will pick up that external fmt
+
 # Find dependencies
 include(Dependencies)
 
