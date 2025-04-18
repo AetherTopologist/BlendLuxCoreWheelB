@@ -1,0 +1,118 @@
+# SPDX-FileCopyrightText: 2024 Howetuft
+#
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: LuxCore Dependency Releaser
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-version:
+        description: "Release version (major.minor.patch[-pre])"
+        required: True
+        type: string
+      allow-updates:
+        description: "Update existing release (if any)"
+        required: True
+        type: boolean
+        default: True
+      rebuild-all:
+        description: "Rebuild all"
+        required: True
+        type: boolean
+        default: False
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  check-version:
+    name: 'Check version compliance'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check version compliance
+        shell: python
+        run: |
+          import sys
+          import re
+          version = "${{ inputs.release-version }}"
+          semver_regex = r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
+          res = re.fullmatch(semver_regex, version)
+          if res:
+            print(f"::notice::Version number OK ('{version}')")
+          else:
+            message = [
+              f"::error::INVALID RELEASE VERSION NUMBER '{version}'",
+              "Version must comply to Semantic Versioning standard:",
+              "\n\tmajor.minor.patch[-pre]\n",
+              "See https://semver.org for more information",
+              "or leave the field blank for default value\n"
+            ]
+            print("\n".join(message))
+            sys.exit(1)
+
+  call-build-deps:
+    name: "Build dependencies"
+    uses: ./.github/workflows/build.yml
+    needs: [check-version]
+    permissions: read-all
+    with:
+      luxdeps-version: ${{ inputs.release-version }}
+      rebuild-all: ${{ inputs.rebuild-all }}
+
+  create-release:
+    name: 'Create release'
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    needs: [call-build-deps]
+    permissions:
+      id-token: write
+      attestations: write
+      contents: write
+    steps:
+      - run: |
+          echo "Creating release '${{ inputs.release-version }}'"
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: luxcore-deps-*
+          path: ${{ github.workspace }}/dist
+          merge-multiple: false
+
+      - name: Re-zip artifacts
+        working-directory: ${{ github.workspace }}/dist
+        run: |
+          mkdir ../artifacts
+          for d in */ ; do
+              d2=${d%/}
+              echo "zip ${d2}"
+              zip -j ../artifacts/${d2}.zip ${d2}/*
+          done
+
+      - name: Generate artifact attestations
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: '${{ github.workspace }}/artifacts/luxcore-deps-*'
+
+      - id: make-release
+        # Use full length commit SHA, otherwise CodeQL complains...
+        uses: ncipollo/release-action@cdcc88a9acf3ca41c16c37bb7d21b9ad48560d87
+        with:
+          name: "LuxCore Dependencies v${{ inputs.release-version }}"
+          tag: "v${{ inputs.release-version }}"
+          artifacts: artifacts/*
+          removeArtifacts: true
+          allowUpdates: ${{ inputs.allow-updates }}
+          prerelease: ${{ inputs.prerelease }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          updateOnlyUnreleased: true
+          draft: true
+
+      - run: |
+          echo "### Release""" >> $GITHUB_STEP_SUMMARY
+          echo ${{ steps.make-release.outputs.html_url }} >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2025 Howetuft
+#
+#
+# SPDX-License-Identifier: Apache-2.0
+
+
+# Check that dependencies are buildable
+
+
+name: LuxCore Dependency Checker
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  call-build-deps:
+    uses: ./.github/workflows/build.yml
+    with:
+      luxdeps-version: "check"

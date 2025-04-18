@@ -1,0 +1,31 @@
+include(conan-profile-common)
+
+[settings]
+os=Windows
+arch=x86_64
+compiler=msvc
+compiler.version=194
+compiler.cppstd={{ os.getenv("CXX_VERSION") }}
+compiler.runtime=dynamic
+doxygen/*:arch=x86_64
+doxygen/*:build_type=Release
+doxygen/*:compiler.cppstd=17
+doxygen/*:compiler.runtime=dynamic
+doxygen/*:compiler.runtime_type=Release
+doxygen/*:compiler.version=193
+xapian-core/*:compiler.cppstd=14
+
+[conf]
+tools.build:cxxflags=["/openmp", "/MP", "/DEBUG:NONE", "/O2", "/arch:AVX"]
+tools.build:cflags=["/openmp", "/MP", "/DEBUG:NONE", "/O2", "/arch:AVX"]
+embree3/*:tools.build:cxxflags=["/openmp", "/MP", "/DEBUG:NONE", "/O2"]
+
+# Following deps are to be compiled with msys2/gcc: MSVC flags will not do
+libiconv/*:tools.build:cxxflags=!
+libiconv/*:tools.build:cflags=!
+xapian-core/*:tools.build:cxxflags=!
+xapian-core/*:tools.build:cflags=!
+
+[options]
+# MSVC does not support avx2 nor avx512
+openvdb/*:simd=AVX
