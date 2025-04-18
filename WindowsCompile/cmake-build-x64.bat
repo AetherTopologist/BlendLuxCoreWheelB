@@ -211,6 +211,7 @@ set CMAKE_OPTS=-G %CMAKE_GENERATOR% %CMAKE_PLATFORM% %CMAKE_TOOLSET% ^
   -DBoost_INCLUDE_DIR="%INCLUDE_DIR%" ^
   -DBoost_LIBRARY_DIR="%LIB_DIR%"
 
+
 echo CMAKE_OPTS=%CMAKE_OPTS%
 
 rem To display only errors add: /clp:ErrorsOnly
