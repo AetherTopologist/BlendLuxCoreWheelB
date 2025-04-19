@@ -11,6 +11,9 @@ __pycache__/
 
 # conan-cache content
 conan-cache/*
+# Ignore the LuxCoreDeps tarball
+luxcore-deps-windows-latest.tgz
+
 
 # Distribution / packaging
 .Python
